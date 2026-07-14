@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732" viewBox="0 0 2732 2732">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#bg)"/>
+  <text x="1366" y="1100" text-anchor="middle" font-family="Arial, sans-serif" font-size="500" font-weight="bold" fill="white">A</text>
+  <text x="1366" y="1400" text-anchor="middle" font-family="Arial, sans-serif" font-size="120" fill="rgba(255,255,255,0.95)">中考英语词汇</text>
+  <text x="1366" y="1600" text-anchor="middle" font-family="Arial, sans-serif" font-size="70" fill="rgba(255,255,255,0.7)">每天5分钟，轻松记单词</text>
+</svg>

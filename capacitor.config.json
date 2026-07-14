@@ -1,0 +1,35 @@
+{
+  "appId": "com.english.vocabulary",
+  "appName": "中考英语词汇",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffff",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true,
+      "layoutName": "launch_screen",
+      "useLastShownRatio": false
+    },
+    "StatusBar": {
+      "style": "LIGHT"
+    }
+  },
+  "ios": {
+    "scheme": "VocabularyApp",
+    "cordovaDeployDisabled": false,
+    "preferences": {
+      "StatusBarDefaultScrollToTop": "false",
+      "StatusBarStyle": "LIGHT",
+      "KeyboardResize": "true"
+    }
+  }
+}
