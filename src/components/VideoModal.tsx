@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { X, Play } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { X, Play, RefreshCw } from 'lucide-react';
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -10,12 +10,13 @@ interface VideoModalProps {
 
 export function VideoModal({ isOpen, onClose, videoSrc, title = '视频播放' }: VideoModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isOpen && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // 自动播放失败时不报错
-      });
+    if (isOpen) {
+      setHasError(false);
+      setIsLoading(true);
     }
   }, [isOpen]);
 
@@ -28,6 +29,14 @@ export function VideoModal({ isOpen, onClose, videoSrc, title = '视频播放' }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  const handleRetry = () => {
+    setHasError(false);
+    setIsLoading(true);
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -49,16 +58,44 @@ export function VideoModal({ isOpen, onClose, videoSrc, title = '视频播放' }
         </div>
 
         {/* 视频区域 */}
-        <div className="bg-black">
-          <video
-            ref={videoRef}
-            src={videoSrc}
-            controls
-            className="w-full max-h-[70vh]"
-            playsInline
-          >
-            您的浏览器不支持视频播放
-          </video>
+        <div className="bg-black relative">
+          {hasError ? (
+            <div className="w-full h-64 flex flex-col items-center justify-center gap-3 text-gray-400">
+              <RefreshCw className="w-10 h-10" />
+              <p className="text-sm">视频加载失败</p>
+              <button
+                onClick={handleRetry}
+                className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                点击重试
+              </button>
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              src={videoSrc}
+              controls
+              className="w-full max-h-[70vh]"
+              playsInline
+              preload="metadata"
+              onLoadedData={() => setIsLoading(false)}
+              onError={() => {
+                setHasError(true);
+                setIsLoading(false);
+              }}
+            >
+              您的浏览器不支持视频播放
+            </video>
+          )}
+          
+          {isLoading && !hasError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="flex flex-col items-center gap-2 text-white">
+                <RefreshCw className="w-8 h-8 animate-spin" />
+                <p className="text-sm">加载中...</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
