@@ -441,7 +441,7 @@ export function VocabularyApp() {
       <VideoModal
         isOpen={showVideoModal}
         onClose={() => setShowVideoModal(false)}
-        videoSrc="/phonetics.mp4"
+        videoSrc={`${import.meta.env.BASE_URL}phonetics.mp4`}
         title="48个国际音标"
       />
     </div>
