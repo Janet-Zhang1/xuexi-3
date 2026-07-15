@@ -2,9 +2,11 @@
 // 用于存储用户收藏和学习进度
 
 export interface UserSettings {
-  rate: number;       // 语速
-  voice: 'en-US' | 'en-GB';  // 声音
-  theme: 'light' | 'dark';   // 主题
+  rate: number;
+  voice: 'en-US' | 'en-GB';
+  theme: 'light' | 'dark';
+  pronunciationMode: 'auto' | 'yilin' | 'tts';
+  showWordImage: boolean;
 }
 
 export interface UserProgress {
@@ -32,7 +34,9 @@ const defaultData: StorageData = {
   settings: {
     rate: 1,
     voice: 'en-US',
-    theme: 'light'
+    theme: 'light',
+    pronunciationMode: 'auto',
+    showWordImage: false
   }
 };
 

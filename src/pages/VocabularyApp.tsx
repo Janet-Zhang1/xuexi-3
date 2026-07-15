@@ -9,17 +9,19 @@ import { ChoiceQuiz } from '../components/ChoiceQuiz';
 import { SpellingQuiz } from '../components/SpellingQuiz';
 import { LearningDashboard } from '../components/LearningDashboard';
 import { DailyForcedReview } from '../components/DailyForcedReview';
+import { SettingsModal } from '../components/SettingsModal';
+import { VideoModal } from '../components/VideoModal';
 import { vocabularyManager, parsedVocabularyManager, Word, WordWithDetail } from '../data/vocabulary';
 import { storageService } from '../utils/storage';
 import { learningService } from '../services/learningService';
 import { 
-  BookOpen, Heart, Volume2, AlertCircle, FileText,
-  Layers, CheckSquare, BarChart3, PenTool, Target, Flame
+  BookOpen, Heart, Volume2, AlertCircle, FileText, Play,
+  Layers, CheckSquare, BarChart3, PenTool, Target, Flame, Settings
 } from 'lucide-react';
 
 type ViewMode = 'all' | 'favorites' | 'wrong';
 type DataType = 'basic' | 'detailed';
-type ActiveModal = 'none' | 'flashcard' | 'choice' | 'spelling' | 'stats' | 'daily';
+type ActiveModal = 'none' | 'flashcard' | 'choice' | 'spelling' | 'stats' | 'daily' | 'settings';
 
 export function VocabularyApp() {
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
@@ -29,6 +31,7 @@ export function VocabularyApp() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeModal, setActiveModal] = useState<ActiveModal>('none');
   const [dailyTaskProgress, setDailyTaskProgress] = useState({ completed: 0, total: 5, isCompleted: false });
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   // 更新每日任务进度
   const updateDailyTaskProgress = () => {
@@ -118,7 +121,23 @@ export function VocabularyApp() {
                 <p className="text-2xl font-bold text-rose-500">{favoriteCount}</p>
                 <p className="text-xs text-gray-500">已收藏</p>
               </div>
+              <button
+                onClick={() => setActiveModal('settings')}
+                className="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                title="设置"
+              >
+                <Settings className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
+            
+            {/* 移动端设置按钮 */}
+            <button
+              onClick={() => setActiveModal('settings')}
+              className="sm:hidden p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              title="设置"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </header>
@@ -165,6 +184,16 @@ export function VocabularyApp() {
             >
               <BookOpen className="w-4 h-4" />
               基础词汇
+            </button>
+            <button
+              onClick={() => setShowVideoModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
+                         bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600
+                         shadow-md hover:shadow-lg"
+              title="48个国际音标视频"
+            >
+              <Play className="w-4 h-4" />
+              音标视频
             </button>
           </div>
         </div>
@@ -401,6 +430,20 @@ export function VocabularyApp() {
           </div>
         </div>
       )}
+      
+      {/* 设置弹窗 */}
+      <SettingsModal 
+        isOpen={activeModal === 'settings'} 
+        onClose={() => setActiveModal('none')} 
+      />
+
+      {/* 音标视频弹窗 */}
+      <VideoModal
+        isOpen={showVideoModal}
+        onClose={() => setShowVideoModal(false)}
+        videoSrc="/phonetics.mp4"
+        title="48个国际音标"
+      />
     </div>
   );
 }

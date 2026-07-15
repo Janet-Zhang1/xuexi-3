@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { WordWithDetail } from '../data/vocabulary';
-import { speechService } from '../utils/speech';
+import { useState, useEffect } from 'react';
+import { WordWithDetail, vocabularyData } from '../data/vocabulary';
+import { audioPlayer } from '../utils/audioPlayer';
 import { storageService } from '../utils/storage';
-import { Volume2, Heart, ChevronDown, ChevronUp, BookOpen, Mic } from 'lucide-react';
+import { wordImageService } from '../utils/wordImage';
+import { Volume2, Heart, ChevronDown, ChevronUp, BookOpen, Mic, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { SpeakingPractice } from './SpeakingPractice';
 
 interface WordDetailCardProps {
@@ -16,6 +17,49 @@ export function WordDetailCard({ word, onFavoriteChange }: WordDetailCardProps) 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSpeaking, setShowSpeaking] = useState(false);
   const [playingSentenceIndex, setPlayingSentenceIndex] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [showImage, setShowImage] = useState(() => storageService.getSettings().showWordImage);
+
+  // 从基础词汇数据中查找音标
+  const getPhonetic = (wordText: string): string | null => {
+    const basicWord = vocabularyData.find(w => w.word.toLowerCase() === wordText.toLowerCase());
+    return basicWord?.phonetic || null;
+  };
+  const phonetic = getPhonetic(word.word);
+
+  // 加载缓存的图片
+  useEffect(() => {
+    if (showImage) {
+      const cached = wordImageService.getImageUrl(word.word, word.definition);
+      if (cached) {
+        setImageUrl(cached);
+      }
+    }
+  }, [word.word, word.definition, showImage]);
+
+  const loadImage = async (forceRegenerate = false) => {
+    if (imageLoading) return;
+    setImageLoading(true);
+    setImageError(false);
+    try {
+      if (forceRegenerate) {
+        wordImageService.clearWordCache(word.word);
+      }
+      const url = await wordImageService.generateImage(word.word, word.definition, forceRegenerate);
+      if (url) {
+        setImageUrl(url);
+      } else {
+        setImageError(true);
+      }
+    } catch (error) {
+      console.error('加载图片失败:', error);
+      setImageError(true);
+    } finally {
+      setImageLoading(false);
+    }
+  };
 
   // 播放单词发音
   const handleSpeak = async (e: React.MouseEvent) => {
@@ -26,7 +70,7 @@ export function WordDetailCard({ word, onFavoriteChange }: WordDetailCardProps) 
     setIsPlaying(true);
     try {
       const settings = storageService.getSettings();
-      await speechService.speak(word.word, { rate: settings.rate, lang: settings.voice });
+      await audioPlayer.speakWord(word.word, { rate: settings.rate, lang: settings.voice });
     } catch (error) {
       console.error('发音失败:', error);
     } finally {
@@ -43,7 +87,7 @@ export function WordDetailCard({ word, onFavoriteChange }: WordDetailCardProps) 
     setPlayingSentenceIndex(indexKey);
     try {
       const settings = storageService.getSettings();
-      await speechService.speak(text, { rate: settings.rate, lang: settings.voice });
+      await audioPlayer.speakText(text, { rate: settings.rate, lang: settings.voice });
     } catch (error) {
       console.error('句子发音失败:', error);
     } finally {
@@ -187,13 +231,19 @@ export function WordDetailCard({ word, onFavoriteChange }: WordDetailCardProps) 
         {/* 头部：单词和操作按钮 */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="text-lg font-semibold text-gray-900 font-serif">
                 {word.word}
               </h3>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPosColor(word.pos)}`}>
                 {word.pos}
               </span>
+              {/* 音标放在单词右侧 */}
+              {phonetic && (
+                <span className="text-sm text-indigo-600 font-mono">
+                  {phonetic}
+                </span>
+              )}
             </div>
             <p className="text-sm text-gray-600">
               {word.definition}
@@ -256,6 +306,72 @@ export function WordDetailCard({ word, onFavoriteChange }: WordDetailCardProps) 
             <ChevronDown className="w-4 h-4" />
             暂无解析
           </span>
+        )}
+        
+        {/* 单词图片 */}
+        {showImage && (
+          <div className="mt-3">
+            {imageUrl ? (
+              <div className="relative group/image">
+                <img 
+                  src={imageUrl} 
+                  alt={word.word}
+                  className="w-full h-32 object-cover rounded-lg bg-gray-50"
+                  onError={() => {
+                    setImageUrl(null);
+                    setImageError(true);
+                  }}
+                />
+                {/* 重新生成按钮 */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setImageError(false);
+                    loadImage(true);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-lg opacity-0 group-hover/image:opacity-100 transition-opacity"
+                  title="重新生成图片"
+                >
+                  <RefreshCw className={`w-4 h-4 ${imageLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            ) : imageLoading ? (
+              <div className="w-full h-32 bg-gray-100 rounded-lg flex flex-col items-center justify-center gap-2">
+                <ImageIcon className="w-6 h-6 text-gray-400 animate-pulse" />
+                <span className="text-sm text-gray-400">生成图片中...</span>
+              </div>
+            ) : imageError ? (
+              <div className="w-full h-32 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-indigo-200">
+                <span className="text-4xl">{wordImageService.getEmojiForWord(word.definition, word.pos)}</span>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-indigo-700">
+                    {wordImageService.extractChineseKeyword(word.definition)}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImageError(false);
+                      loadImage();
+                    }}
+                    className="text-xs text-indigo-500 hover:text-indigo-700 mt-1 underline"
+                  >
+                    点击重试生成配图
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  loadImage();
+                }}
+                className="w-full h-24 bg-gray-50 hover:bg-gray-100 rounded-lg flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-indigo-500 transition-colors border-2 border-dashed border-gray-200"
+              >
+                <ImageIcon className="w-5 h-5" />
+                <span className="text-sm">点击生成配图</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
       
