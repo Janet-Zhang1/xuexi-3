@@ -8,6 +8,7 @@ export default defineConfig({
     sourcemap: 'hidden',
     outDir: 'dist',
   },
+  base: '/xuexi-3/',
   plugins: [
     react({
       babel: {
@@ -28,22 +29,22 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: '/xuexi-3/',
+        start_url: '/xuexi-3/',
         lang: 'zh-CN',
         icons: [
           {
-            src: '/pwa-icon-192.png',
+            src: '/xuexi-3/pwa-icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/pwa-icon-512.png',
+            src: '/xuexi-3/pwa-icon-512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: '/pwa-icon-512.png',
+            src: '/xuexi-3/pwa-icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
