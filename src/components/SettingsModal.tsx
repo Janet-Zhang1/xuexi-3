@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { storageService, UserSettings } from '../utils/storage';
 import { wordImageService } from '../utils/wordImage';
-import { Settings, Volume2, Image, X, Info, Trash2 } from 'lucide-react';
+import { audioPlayer } from '../utils/audioPlayer';
+import { Settings, Volume2, Image, X, Info, Trash2, Music } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -12,12 +13,21 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [settings, setSettings] = useState<UserSettings>(() => storageService.getSettings());
   const [cacheSize, setCacheSize] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [audioCacheCount, setAudioCacheCount] = useState(0);
 
-  // 监听设置变化
   useEffect(() => {
-    const currentSettings = storageService.getSettings();
-    setSettings(currentSettings);
-    setCacheSize(wordImageService.getCacheSize());
+    if (isOpen) {
+      const currentSettings = storageService.getSettings();
+      setSettings(currentSettings);
+      setCacheSize(wordImageService.getCacheSize());
+      setAudioCacheCount(audioPlayer.getYilinAudioCount());
+      
+      const timer = setTimeout(() => {
+        setAudioCacheCount(audioPlayer.getYilinAudioCount());
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
   }, [isOpen]);
 
   const handlePronunciationModeChange = (mode: 'auto' | 'yilin' | 'tts') => {
@@ -123,14 +133,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
             {/* 译林版音频提示 */}
             {(settings.pronunciationMode === 'yilin' || settings.pronunciationMode === 'auto') && (
-              <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="mt-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                 <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-amber-700">
-                    <p className="font-medium mb-1">关于译林版音频</p>
-                    <p>需要将音频文件放到项目的 <code className="bg-amber-100 px-1 rounded">public/audio/</code> 目录下，文件名格式为 <code className="bg-amber-100 px-1 rounded">单词.mp3</code>（如 <code className="bg-amber-100 px-1 rounded">underground.mp3</code>）</p>
+                  <Music className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-indigo-700">
+                    <p className="font-medium mb-1">译林版音频</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      音频文件放在 <code className="bg-white px-1 rounded">public/audio/</code> 目录
+                    </p>
                   </div>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  已有 <span className="font-bold text-indigo-600">{audioCacheCount}</span> 个单词配置了译林版发音
+                </p>
               </div>
             )}
           </div>
